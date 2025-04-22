@@ -272,7 +272,7 @@ export default function App() {
     <div className="bg-sky-100 h-screen">
       <div className="max-w-4xl mx-auto flex justify-center items-center flex-col lg:flex-row w-full h-screen">
         {/* Sidebar */}
-        <div className="flex items-center flex-row lg:flex-col bg-[url('bg-sidebar-desktop.svg')] bg-cover bg-no-repeat bg-center text-white rounded-lg p-8 w-full lg:w-2/5 lg:h-screen">
+        <div className="flex items-center flex-row lg:flex-col bg-[url('/bg-sidebar-desktop.svg')] bg-cover bg-no-repeat bg-center text-white rounded-lg p-8 w-full lg:w-2/5 lg:h-screen">
           {[1, 2, 3, 4].map((step) => (
             <div key={step} className="mb-6 flex items-center justify-center gap-6 w-full">
               <span

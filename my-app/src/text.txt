@@ -1,0 +1,212 @@
+import React, { useState } from "react";
+
+export default function App() {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    plan: "Arcade",
+    billingCycle: "Monthly", // "Monthly" or "Yearly"
+    addOns: [],
+  });
+
+  const [errors, setErrors] = useState({
+    name: false,
+    email: false,
+    phone: false,
+  });
+
+  const plans = [
+    { name: "Arcade", monthly: 9, yearly: 90 },
+    { name: "Advanced", monthly: 12, yearly: 120 },
+    { name: "Pro", monthly: 15, yearly: 150 },
+  ];
+
+  const addOnsList = [
+    { name: "Online services", description: "Access to multiplayer games", monthly: 1, yearly: 10 },
+    { name: "Larger storage", description: "Extra 1TB of cloud save", monthly: 2, yearly: 20 },
+    { name: "Customizable Profile", description: "Custom theme on your profile", monthly: 2, yearly: 20 },
+  ];
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+    if (name in errors) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: false,
+      }));
+    }
+  };
+
+  const handleAddOnChange = (addOnName) => {
+    setFormData((prev) => {
+      const newAddOns = prev.addOns.includes(addOnName)
+        ? prev.addOns.filter((name) => name !== addOnName)
+        : [...prev.addOns, addOnName];
+      return { ...prev, addOns: newAddOns };
+    });
+  };
+
+  const handleBillingToggle = () => {
+    setFormData((prev) => ({
+      ...prev,
+      billingCycle: prev.billingCycle === "Monthly" ? "Yearly" : "Monthly",
+    }));
+  };
+
+  const validateStep1 = () => {
+    const newErrors = {
+      name: formData.name.trim() === "",
+      email:
+        formData.email.trim() === "" ||
+        !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(formData.email),
+      phone: formData.phone.trim() === "",
+    };
+    setErrors(newErrors);
+    return !Object.values(newErrors).some((error) => error);
+  };
+
+  const getTotalCost = () => {
+    const plan = plans.find((p) => p.name === formData.plan);
+    const planCost = formData.billingCycle === "Monthly" ? plan.monthly : plan.yearly;
+    const addOnsCost = formData.addOns.reduce((acc, addOnName) => {
+      const addOn = addOnsList.find((add) => add.name === addOnName);
+      const cost = formData.billingCycle === "Monthly" ? addOn.monthly : addOn.yearly;
+      return acc + cost;
+    }, 0);
+    return planCost + addOnsCost;
+  };
+
+  const handleNextStep = () => {
+    if (currentStep === 1 && !validateStep1()) return;
+    setCurrentStep((prev) => prev + 1);
+  };
+
+  const handlePreviousStep = () => {
+    setCurrentStep((prev) => prev - 1);
+  };
+
+  const handleConfirm = () => {
+    console.log("Final Form Data:", formData);
+    alert("Form submitted successfully!");
+  };
+
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <div>
+            <h2 className="text-2xl font-bold">Personal Info</h2>
+            <p>Please provide your name, email address, and phone number.</p>
+            <form className="space-y-4">
+              {[
+                { name: "name", label: "Name", type: "text", placeholder: "e.g Mason Mount" },
+                { name: "email", label: "Email Address", type: "email", placeholder: "e.g masonMount23@gmail.com" },
+                { name: "phone", label: "Phone Number", type: "text", placeholder: "e.g +1 234 567 890" },
+              ].map((field) => (
+                <div key={field.name} className="space-y-1">
+                  <label htmlFor={field.name}>{field.label}</label>
+                  {errors[field.name] && <span className="text-red-600 text-sm">This field is required</span>}
+                  <input
+                    id={field.name}
+                    name={field.name}
+                    type={field.type}
+                    value={formData[field.name]}
+                    onChange={handleChange}
+                    placeholder={field.placeholder}
+                    className={`w-full p-2 rounded border ${
+                      errors[field.name] ? "border-red-600" : "border-gray-300"
+                    }`}
+                  />
+                </div>
+              ))}
+            </form>
+          </div>
+        );
+      case 2:
+        return (
+          <div>
+            <h2 className="text-2xl font-bold">Select Plan</h2>
+            <p>You have the option of monthly or yearly billing.</p>
+            <div className="py-4">
+              {plans.map((plan) => (
+                <div key={plan.name} className="p-2 border">
+                  <input
+                    type="radio"
+                    name="plan"
+                    value={plan.name}
+                    checked={formData.plan === plan.name}
+                    onChange={handleChange}
+                  />
+                  <span>{plan.name}</span>
+                </div>
+              ))}
+            </div>
+            <div>
+              <label>Billing Cycle</label>
+              <button onClick={handleBillingToggle}>
+                {formData.billingCycle === "Monthly" ? "Switch to Yearly" : "Switch to Monthly"}
+              </button>
+            </div>
+          </div>
+        );
+      case 3:
+        return (
+          <div>
+            <h2 className="text-2xl font-bold">Pick Add-ons</h2>
+            <p>Add-ons enhance your experience.</p>
+            <div>
+              {addOnsList.map((addOn) => (
+                <div key={addOn.name} className="p-2 border">
+                  <input
+                    type="checkbox"
+                    checked={formData.addOns.includes(addOn.name)}
+                    onChange={() => handleAddOnChange(addOn.name)}
+                  />
+                  <span>{addOn.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      case 4:
+        return (
+          <div>
+            <h2 className="text-2xl font-bold">Finishing Up</h2>
+            <p>Review your selections.</p>
+            <div>
+              <p>Plan: {formData.plan} ({formData.billingCycle})</p>
+              <p>Add-Ons:</p>
+              <ul>
+                {formData.addOns.map((addOn) => (
+                  <li key={addOn}>{addOn}</li>
+                ))}
+              </ul>
+              <p>Total: ${getTotalCost()}</p>
+            </div>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div>
+      <div>{renderStepContent()}</div>
+      <div>
+        {currentStep > 1 && <button onClick={handlePreviousStep}>Back</button>}
+        {currentStep < 4 ? (
+          <button onClick={handleNextStep}>Next</button>
+        ) : (
+          <button onClick={handleConfirm}>Confirm</button>
+        )}
+      </div>
+    </div>
+  );
+}
